@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSState EPY Emphasis Finder</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Using Inter as a clean, modern font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Define MSU Maroon for Tailwind */
+        .bg-msu-maroon {
+            background-color: #660000;
+        }
+        .text-msu-maroon {
+            color: #660000;
+        }
+        .border-msu-maroon {
+            border-color: #660000;
+        }
+        .hover\:bg-msu-maroon-dark:hover {
+            background-color: #4d0000;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        
+        <!-- Header -->
+        <div class="bg-msu-maroon text-white p-6 text-center">
+            <h1 class="text-2xl md:text-3xl font-bold">Mississippi State University</h1>
+            <h2 class="text-xl md:text-2xl font-semibold opacity-90">Educational Psychology Emphasis Finder</h2>
+        </div>
+
+        <div class="p-6 md:p-10">
+
+            <!-- Start Screen -->
+            <div id="start-screen">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Find Your Path in EPY</h3>
+                <p class="text-gray-700 mb-6 text-lg">
+                    Welcome! This short quiz will help you discover which emphasis area in Educational Psychology might be the best fit for your interests and goals.
+                </p>
+                <p class="text-gray-700 mb-8">
+                    Answer a few simple questions to see where you might thrive.
+                </p>
+                <button id="start-btn" class="w-full bg-msu-maroon text-white font-bold text-lg py-3 px-6 rounded-lg hover:bg-msu-maroon-dark transition-all duration-300 transform hover:scale-105">
+                    Start the Quiz
+                </button>
+            </div>
+
+            <!-- Quiz Screen (Initially Hidden) -->
+            <div id="quiz-screen" class="hidden">
+                <div class="mb-4">
+                    <span id="question-counter" class="text-sm font-semibold text-msu-maroon"></span>
+                </div>
+                <h3 id="question-text" class="text-2xl font-bold text-gray-800 mb-8"></h3>
+                <div id="answers-container" class="space-y-4">
+                    <!-- Answers will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Result Screen (Initially Hidden) -->
+            <div id="result-screen" class="hidden">
+                <!-- Results will be dynamically inserted here -->
+                <div id="results-container" class="space-y-8">
+                    <!-- 
+                    Example Structure:
+                    <div>
+                        <h3 class="text-lg font-semibold text-msu-maroon">Your Top Recommended Emphasis Area:</h3>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">Result Title</h2>
+                        <div class="text-gray-700 text-base md:text-lg space-y-4">Result Description</div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700 mt-6">Also, You Might Be Interested In:</h3>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">Result Title 2</h2>
+                        <div class="text-gray-700 text-base md:text-lg space-y-4">Result Description 2</div>
+                    </div>
+                    -->
+                </div>
+                <button id="reset-btn" class="mt-8 w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition-all duration-300">
+                    Take the Quiz Again
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        // This holds all the questions and which emphasis they map to.
+        const questions = [
+            {
+                question: "When you think about helping others, what sounds most appealing?",
+                answers: [
+                    { text: "Analyzing and modifying behaviors to improve skills and daily life.", emphasis: "aba" },
+                    { text: "Listening to people and helping them navigate emotional or mental challenges.", emphasis: "counseling" },
+                    { text: "Nurturing the growth and learning of young children.", emphasis: "child" },
+                    { text: "Working with teens to help them build a positive future.", emphasis: "youth" }
+                ]
+            },
+            {
+                question: "Which environment do you find most interesting?",
+                answers: [
+                    { text: "A corporate or office setting, improving workplace culture.", emphasis: "hr" },
+                    { text: "A sports complex, gym, or health-focused organization.", emphasis: "kinesiology" },
+                    { text: "A courtroom, law office, or community advocacy group.", emphasis: "law" },
+                    { text: "A school, university, or a setting focused on teaching and learning.", emphasis: "learningAndSchools" }
+                ]
+            },
+            {
+                question: "What kind of problem-solving interests you most?",
+                answers: [
+                    { text: "Using data and observation to create measurable change in behavior.", emphasis: "aba" },
+                    { text: "Understanding the root causes of crime and delinquency.", emphasis: "law" },
+                    { text: "Building efficient and positive systems for employees in a company.", emphasis: "hr" },
+                    { text: "Helping people overcome physical or psychological barriers.", emphasis: "counseling" }
+                ]
+            },
+            {
+                question: "Which population do you feel most drawn to working with?",
+                answers: [
+                    { text: "Infants, toddlers, and young children.", emphasis: "child" },
+                    { text: "Adolescents and teenagers.", emphasis: "youth" },
+                    { text: "Adults in a professional or therapeutic setting.", emphasis: "counseling" },
+                    { text: "Athletes or people focused on physical health.", emphasis: "kinesiology" }
+                ]
+            },
+            {
+                question: "What topic sparks your curiosity?",
+                answers: [
+                    { text: "How the human body moves and how to optimize performance.", emphasis: "kinesiology" },
+                    { text: "How companies hire, train, and motivate their employees.", emphasis: "hr" },
+                    { text: "How speech, language, and hearing work (or don't).", emphasis: "slp" },
+                    { text: "How to support families and parents in raising healthy children.", emphasis: "child" }
+                ]
+            },
+             {
+                question: "Which societal issue are you most passionate about?",
+                answers: [
+                    { text: "Ensuring justice, rehabilitation, and understanding the legal system.", emphasis: "law" },
+                    { text: "Developing positive pathways for at-risk youth.", emphasis: "youth" },
+                    { text: "Providing effective mental health and wellness support.", emphasis: "counseling" },
+                    { text: "Helping individuals with developmental or behavioral disorders live fuller lives.", emphasis: "aba" }
+                ]
+            },
+            {
+                question: "What kind of impact do you want to make in an educational setting?",
+                answers: [
+                    { text: "Improve how individual students learn, study, and are motivated.", emphasis: "learningAndSchools" },
+                    { text: "Support the social-emotional well-being of students.", emphasis: "counseling" },
+                    { text: "Work one-on-one with students who have specific behavioral needs.", emphasis: "aba" },
+                    { text: "Focus on the needs of pre-K and elementary school children.", emphasis: "child" }
+                ]
+            }
+        ];
+
+        // This holds the detailed paragraphs for each result.
+        const emphasisDetails = {
+            aba: {
+                name: "Applied Behavior Analysis (ABA)",
+                description: `
+                    <p>This emphasis is a great fit for your interest in creating measurable, positive change. <strong>Applied Behavior Analysis (ABA)</strong> focuses on the science of learning and behavior. You'll learn why people act the way they do and how to apply those principles to change behaviors of social significance.</p>
+                    <p><strong>Skills & Learning:</strong> You will develop critical skills in data collection, behavioral observation, functional behavior assessment, and creating and implementing behavior intervention plans. The coursework (like EPY 4103 and 4113) provides a strong foundation and is available in both online and face-to-face formats.</p>
+                    <p><strong>Career Paths:</strong> This path is specifically designed to prepare you for graduate-level study to become a Board Certified Behavior Analyst (BCBA). With an undergraduate focus, you can pursue roles as a Board Certified Assistant Behavior Analyst (BCaBA) or a Registered Behavior Technician (RBT), often working in clinics, schools, or in-home settings with individuals with autism or other developmental disabilities.</p>
+                `
+            },
+            counseling: {
+                name: "Counseling / Clinical Applications",
+                description: `
+                    <p>Your interest in helping people navigate emotional and mental challenges points directly to the <strong>Counseling and Clinical Applications</strong> emphasis. This area provides a strong foundation for understanding the theories and practices of helping professions.</p>
+                    <p><strong>Skills & Learning:</strong> You'll develop core facilitative skills (like in COE 4013) such as active listening, empathy, and building therapeutic relationships. You will explore topics like abnormal psychology, rehabilitation services, and developmental counseling, giving you a broad understanding of human psychological health across the lifespan.</p>
+                    <p><strong>Career Paths:</strong> This emphasis is excellent preparation for graduate school, which is required to become a licensed counselor. You'll be a strong candidate for master's programs in Clinical Mental Health Counseling, School Counseling, Rehabilitation Counseling, or Clinical Psychology. Undergraduate-level roles might include case manager, rehabilitation technician, or mental health technician.</p>
+                `
+            },
+            child: {
+                name: "The Developing Child",
+                description: `
+                    <p>Your interest in the growth and learning of young children makes <strong>The Developing Child</strong> a perfect fit. This emphasis, with courses from Human Development and Family Science (HDFS), explores the complete picture of child development from infancy through the early years.</p>
+                    <p><strong>Skills & Learning:</strong> You will gain a deep understanding of prenatal and infant development, creativity and play, parenting, and family dynamics. You'll develop skills in observing child behavior, understanding developmental milestones, and recognizing the factors that contribute to risk and resilience in families.</p>
+                    <p><strong>Career Paths:</strong> This path prepares you for a wide range of careers in early care and education, childcare program administration, family support services, and non-profit organizations focused on children and families. It is also a strong foundation for graduate studies in child development, family science, or school psychology.</p>
+                `
+            },
+            hr: {
+                name: "Human Resources & Industrial Applications",
+                description: `
+                    <p>Your interest in the corporate world and workplace culture aligns perfectly with the <strong>Human Resources & Industrial Applications</strong> emphasis. This area combines psychology with business management principles to explore the human side of organizations.</p>
+                    <p><strong>Skills & Learning:</strong> You will develop skills in management, organizational behavior, and human resource management. Courses like MGT 3513 (Intro to HR) and MGT 3813 (Organizational Behavior) will teach you about motivation, cross-cultural management, and the systems companies use to recruit, train, and support their employees.</p>
+                    <p><strong>Career Paths:</strong> This emphasis prepares you for careers in corporate settings. Common job titles include HR Generalist, Recruiter, Training and Development Specialist, or Compensation and Benefits Analyst. It also provides a strong foundation for an MBA or a master's degree in Industrial-Organizational (I/O) Psychology or Human Resource Management.</p>
+                `
+            },
+            kinesiology: {
+                name: "Kinesiology",
+                description: `
+                    <p>Your passion for sports, health, and the human body points toward the <strong>Kinesiology</strong> emphasis. This area explores human movement, physical education, and health promotion, blending the psychological side of EPY with the physical side of performance and wellness.</p>
+                    <p><strong>Skills & Learning:</strong> You will gain knowledge in foundations of health education, sport psychology, motor development, and emergency health care. This path helps you understand not just how the body moves, but also how to teach, motivate, and ensure the safety of athletes and individuals pursuing a healthy lifestyle.</p>
+                    <p><strong>Career Paths:</strong> This emphasis can lead to careers in coaching, health education, corporate wellness, or sports administration. It is also an excellent preparatory track for graduate programs in physical therapy (PT), occupational therapy (OT), athletic training, or sport psychology.</p>
+                `
+            },
+            law: {
+                name: "Law & Order",
+                description: `
+                    <p>Your interest in the justice system and societal issues makes <strong>Law & Order</strong> a strong match. This emphasis area explores the intersection of psychology, criminology, and the legal system, examining the "why" behind criminal behavior and the "how" of the justice process.</p>
+                    <p><strong>Skills & Learning:</strong> You will develop critical thinking skills related to criminology, deviant behavior, and the legal system. Courses like PSY 4353 (Psychology and the Law) and CRM 1003 (Crime and Justice in America) will give you insight into juvenile delinquency, correctional systems, and how issues like race and gender impact the justice system.</p>
+                    <p><strong>Career Paths:</strong> This path is outstanding preparation for law school. It also prepares students for careers in law enforcement, corrections (like a probation or parole officer), juvenile justice, or as a victim advocate. Many students also pursue graduate degrees in criminology, forensic psychology, or public policy.</p>
+                `
+            },
+            slp: {
+                name: "Speech/Language Pathology (SLP)",
+                description: `
+                    <p>Your curiosity about communication makes the <strong>Speech/Language Pathology (SLP)</strong> emphasis a great option. This area is a highly specialized preparatory track for students who know they want to pursue a career helping people with speech, language, and swallowing disorders.</p>
+                    <p><strong>Skills & Learning:</strong> This emphasis is unique, as it consists of prerequisite courses for graduate programs in SLP. Most of this coursework is completed at Mississippi University for Women (MUW) through a cross-registration program. You will build a foundational knowledge of phonetics, anatomy and physiology of speech, and language development.</p>
+                    <p><strong>Career Paths:</strong> This emphasis is designed with one primary goal: to make you a competitive applicant for a Master's in Speech/Language Pathology. This graduate degree is required to become a licensed SLP, a high-demand career working in schools, hospitals, clinics, or private practice.</p>
+                `
+            },
+            youth: {
+                name: "Youth & Teen Studies",
+                description: `
+                    <p>Your desire to work with adolescents and help them navigate their challenges aligns perfectly with the <strong>Youth & Teen Studies</strong> emphasis. This area focuses on the unique developmental period of adolescence, exploring everything from positive development to risk and resilience.</p>
+                    <p><strong>Skills & Learning:</strong> You will develop skills in understanding adolescent psychology, social cognition, and family dynamics. Courses like HDFS 4873 (Positive Youth Development) and CRM/SO 4233 (Juvenile Delinquency) will help you understand the social, psychological, and environmental factors that shape a teenager's life.</p>
+                    <p><strong>Career Paths:</strong> This path prepares you for careers in youth-focused non-profit organizations (like the Boys & Girls Clubs), youth ministry, juvenile justice, or as a high school academic advisor. It is also a strong foundation for graduate programs in school counseling, clinical psychology (with a child/adolescent focus), or social work.</p>
+                `
+            },
+            learningAndSchools: {
+                name: "Learning, Development, & Schools",
+                description: `
+                    <p>Your interest in teaching, learning, and school environments makes you a natural fit for exploring the core of Educational Psychology. While this program does not lead to teacher licensure, it provides the deep psychological foundation for understanding how people learn, what motivates them, and how educational systems work.</p>
+                    <p><strong>Skills & Learning:</strong> You will gain a strong understanding of learning theories, human development, motivation, and assessment. This emphasis provides a scientific look at education and is ideal for those who want to improve learning outcomes, design educational programs, or support students in non-teaching roles. It has strong overlaps with <strong>The Developing Child</strong>, <strong>Youth & Teen Studies</strong>, and <strong>ABA</strong>, depending on the age group and context you're most passionate about.</p>
+                    <p><strong>Career Paths:</strong> This emphasis is outstanding preparation for graduate school. Many students pursue master's or doctoral degrees in School Psychology, School Counseling, Learning Sciences, or Educational Research. Other career paths include corporate training, educational technology, curriculum design, or working for educational non-profits and policy centers.</p>
+                `
+            }
+        };
+
+        // --- APP STATE ---
+        let currentQuestionIndex = 0;
+        let emphasisScores = {
+            aba: 0,
+            counseling: 0,
+            child: 0,
+            hr: 0,
+            kinesiology: 0,
+            law: 0,
+            slp: 0,
+            youth: 0,
+            learningAndSchools: 0
+        };
+ 
+        // --- DOM ELEMENTS ---
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        
+        const questionCounter = document.getElementById('question-counter');
+        const questionText = document.getElementById('question-text');
+        const answersContainer = document.getElementById('answers-container');
+        
+        const resultTitle = document.getElementById('result-title');
+        const resultDescription = document.getElementById('result-description');
+        const resultsContainer = document.getElementById('results-container');
+
+        // --- FUNCTIONS ---
+ 
+        /**
+         * Starts the quiz: hides start screen, shows quiz screen, and loads the first question.
+         */
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            currentQuestionIndex = 0;
+            // Reset scores
+            for (let key in emphasisScores) {
+                emphasisScores[key] = 0;
+            }
+            showQuestion();
+        }
+
+        /**
+         * Displays the current question and its answer options.
+         */
+        function showQuestion() {
+            // Clear previous answers
+            answersContainer.innerHTML = ''; 
+            
+            // Get current question data
+            let questionData = questions[currentQuestionIndex];
+            
+            // Update question text and counter
+            questionText.textContent = questionData.question;
+            questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+
+            // Create and append answer buttons
+            questionData.answers.forEach(answer => {
+                const button = document.createElement('button');
+                button.textContent = answer.text;
+                button.setAttribute('data-emphasis', answer.emphasis);
+                button.className = "w-full text-left text-lg p-4 border-2 border-gray-200 rounded-lg hover:border-msu-maroon hover:bg-gray-50 transition-all duration-200 cursor-pointer";
+                button.onclick = handleAnswerClick;
+                answersContainer.appendChild(button);
+            });
+        }
+
+        /**
+         * Handles the logic when an answer is clicked.
+         */
+        function handleAnswerClick(event) {
+            // 1. Get the emphasis from the clicked button
+            const selectedEmphasis = event.target.getAttribute('data-emphasis');
+            
+            // 2. Increment the score for that emphasis
+            if (emphasisScores.hasOwnProperty(selectedEmphasis)) {
+                emphasisScores[selectedEmphasis]++;
+            }
+
+            // 3. Move to the next question or show results
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        /**
+         * Calculates and displays the final result.
+         */
+        function showResults() {
+            // 1. Get all scores, filter for those > 0, and sort descending
+            const rankedScores = Object.entries(emphasisScores)
+                .filter(([key, score]) => score > 0)
+                .sort((a, b) => b[1] - a[1]); // b[1] is score, a[1] is score
+
+            // 2. Clear the results container
+            resultsContainer.innerHTML = '';
+
+            // 3. Check if any results were found
+            if (rankedScores.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">No specific match found!</h2>
+                        <div class="text-gray-700 text-base md:text-lg space-y-4">
+                            <p>Your answers were diverse! The great thing about Educational Psychology is that it's a flexible field. We recommend exploring all the emphasis areas or taking the quiz again to see if a different combination of answers points you in a new direction.</p>
+                        </div>
+                    </div>
+                `;
+                quizScreen.classList.add('hidden');
+                resultScreen.classList.remove('hidden');
+                return;
+            }
+
+            // 4. Build the HTML for each ranked result
+            rankedScores.forEach((result, index) => {
+                const emphasisKey = result[0]; // e.g., "aba"
+                const resultData = emphasisDetails[emphasisKey];
+                
+                const resultElement = document.createElement('div');
+                
+                let titleHtml = '';
+                if (index === 0) {
+                    // This is the top match
+                    titleHtml = `<h3 class="text-lg font-semibold text-msu-maroon">Your Top Recommended Emphasis Area:</h3>`;
+                } else if (index === 1) {
+                    // This is the header for all secondary matches
+                    titleHtml = `<h3 class="text-xl font-semibold text-gray-800 pt-6 border-t border-gray-200">Other Areas You Might Like:</h3>`;
+                } else {
+                    // No title for 3rd, 4th, etc.
+                    titleHtml = '<div class="pt-6 border-t border-gray-200"></div>'; // Just a separator
+                }
+
+                resultElement.innerHTML = `
+                    ${titleHtml}
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">${resultData.name}</h2>
+                    <div class="text-gray-700 text-base md:text-lg space-y-4">
+                        ${resultData.description}
+                    </div>
+                `;
+                
+                resultsContainer.appendChild(resultElement);
+            });
+
+            // 5. Show the result screen
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+        }
+ 
+        // --- EVENT LISTENERS ---
+        startBtn.addEventListener('click', startQuiz);
+        resetBtn.addEventListener('click', startQuiz); // Reset button just re-runs the startQuiz function
+
+    </script>
+</body>
+</html>
